@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "356246633532",
+    "project_id": "college-utility-app-se",
+    "storage_bucket": "college-utility-app-se.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:356246633532:android:280e4b3ef54eb66cc0d739",
+        "android_client_info": {
+          "package_name": "com.example.flutter_application_1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC81YUt7O_bQCQNhYPmas7uOaqMBBy2Qtk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
