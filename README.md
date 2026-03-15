@@ -1,4 +1,4 @@
-# flutter_application_1
+# College Utility Application
 
 A new Flutter project.
 
