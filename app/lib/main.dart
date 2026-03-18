@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'firebase_options.dart';
 import 'auth_screen.dart';
+import 'lost_found_feed.dart';
 import 'profile_setup_screen.dart'; 
 
 Future<void> main() async {
@@ -141,8 +142,10 @@ class DashboardScreen extends StatelessWidget {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 child: InkWell(
                   onTap: () {
-                    // TODO: Navigate to Lost & Found Screen
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Navigating to Lost & Found...')));
+                    Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const LostFoundFeed()),
+                    );                    
                   },
                   borderRadius: BorderRadius.circular(16),
                   child: Container(
