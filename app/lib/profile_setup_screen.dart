@@ -11,15 +11,15 @@ class ProfileSetupScreen extends StatefulWidget {
 }
 
 class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
+  // NEW: Name Controller added
+  final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _bioController = TextEditingController();
   
-  // Dropdown State Variables
   String? _selectedDept;
   String? _selectedHostel;
   bool _isLoading = false;
 
-  // Standardized Lists for the Dropdowns
   final List<String> _departments = [
     'Computer Science and Engineering',
     'Electrical Engineering',
@@ -39,8 +39,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   ];
 
   Future<void> _saveProfile() async {
-    // Validation to ensure they picked an option from the dropdowns
-    if (_selectedDept == null || _selectedHostel == null || _phoneController.text.isEmpty) {
+    // NEW: Added name validation
+    if (_nameController.text.isEmpty || _selectedDept == null || _selectedHostel == null || _phoneController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill out all required fields.')),
       );
@@ -51,12 +51,16 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     final user = FirebaseAuth.instance.currentUser;
 
     if (user != null) {
+      // NEW: Attach the name to their underlying Firebase Auth account!
+      await user.updateDisplayName(_nameController.text.trim());
+
       await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
         'email': user.email,
         'uid': user.uid,
+        'name': _nameController.text.trim(), // NEW: Save to database
         'phone': _phoneController.text.trim(),
-        'department': _selectedDept, // Saving the dropdown choice
-        'hostel': _selectedHostel,   // Saving the dropdown choice
+        'department': _selectedDept, 
+        'hostel': _selectedHostel,  
         'bio': _bioController.text.trim(),
         'isProfileComplete': true, 
       });
@@ -92,6 +96,18 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
               style: TextStyle(color: Colors.grey, fontSize: 16),
             ),
             const SizedBox(height: 32),
+
+            // NEW: Full Name Field
+            TextField(
+              controller: _nameController, 
+              textCapitalization: TextCapitalization.words,
+              decoration: InputDecoration(
+                labelText: 'Full Name *',
+                prefixIcon: const Icon(Icons.person),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 16),
 
             // Phone Number
             TextField(

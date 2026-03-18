@@ -1,3 +1,4 @@
+import 'profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
@@ -88,16 +89,38 @@ class RideShareFeed extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 16,
-                      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                      child: const Icon(Icons.person, size: 16),
+                // THIS IS THE NEW CLICKABLE INKWELL
+                InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      // If your ProfileScreen requires a userId to load the right data, 
+                      // you would pass it like this: ProfileScreen(userId: ride.userId)
+                      MaterialPageRoute(builder: (context) => ProfileScreen(userId: ride.userId)),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 2.0),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 16,
+                          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                          child: const Icon(Icons.person, size: 16),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          ride.posterName, 
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold, 
+                            fontSize: 16, 
+                            decoration: TextDecoration.underline, // Visual cue that it's clickable
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    Text(ride.posterName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                  ],
+                  ),
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),

@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class ProfileScreen extends StatefulWidget {
-  final String userId; // The ID of the profile we want to view
+  final String userId; 
 
   const ProfileScreen({super.key, required this.userId});
 
@@ -14,7 +14,6 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final String currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
 
-  // Standard lists for the Edit Dropdowns
   final List<String> _departments = [
     'Computer Science and Engineering', 'Electrical Engineering', 
     'Mechanical Engineering', 'Civil Engineering', 'Artificial Intelligence', 
@@ -22,14 +21,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
   ];
   final List<String> _hostels = ['Hostel 1', 'Hostel 2', 'Hostel 3', 'Girls Hostel', 'Day Scholar'];
 
-  // --- EDIT PROFILE BOTTOM SHEET ---
   void _showEditProfileSheet(Map<String, dynamic> userData) {
+    // THE NEW NAME CONTROLLER FOR EDITING
+    final nameController = TextEditingController(text: userData['name'] ?? '');
     final phoneController = TextEditingController(text: userData['phone']);
     final bioController = TextEditingController(text: userData['bio']);
     String rawDept = userData['department'] ?? _departments.first;
     String rawHostel = userData['hostel'] ?? _hostels.first;
     String selectedDept = _departments.contains(rawDept) ? rawDept : _departments.first;
     String selectedHostel = _hostels.contains(rawHostel) ? rawHostel : _hostels.first;
+    
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -46,7 +47,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const Text('Edit Profile', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               const SizedBox(height: 16),
               
-              // Email is READ ONLY
               TextField(
                 controller: TextEditingController(text: userData['email']),
                 enabled: false, 
@@ -54,6 +54,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(height: 16),
               
+              // THE NEW NAME TEXT BOX IN THE EDIT SHEET
+              TextField(
+                controller: nameController,
+                textCapitalization: TextCapitalization.words,
+                decoration: const InputDecoration(labelText: 'Full Name', border: OutlineInputBorder()),
+              ),
+              const SizedBox(height: 16),
+
               TextField(
                 controller: phoneController,
                 decoration: const InputDecoration(labelText: 'Phone Number', border: OutlineInputBorder()),
@@ -85,14 +93,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
               ElevatedButton(
                 onPressed: () async {
-                  // Update Firestore
+                  if (nameController.text.trim().isNotEmpty) {
+                    await FirebaseAuth.instance.currentUser?.updateDisplayName(nameController.text.trim());
+                  }
+
                   await FirebaseFirestore.instance.collection('users').doc(widget.userId).update({
+                    'name': nameController.text.trim(), 
                     'phone': phoneController.text.trim(),
                     'department': selectedDept,
                     'hostel': selectedHostel,
                     'bio': bioController.text.trim(),
                   });
-                  if (context.mounted) Navigator.pop(context); // Close sheet
+                  if (context.mounted) Navigator.pop(context); 
                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profile Updated!')));
                 },
                 child: const Text('Save Changes'),
@@ -114,7 +126,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       appBar: AppBar(
         title: Text(isOwnProfile ? 'My Profile' : 'Student Profile'),
         elevation: 0,
-        // The Constant Home Button!
         leading: IconButton(
           icon: const Icon(Icons.home),
           onPressed: () => Navigator.popUntil(context, (route) => route.isFirst),
@@ -128,7 +139,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
           var userData = snapshot.data!.data() as Map<String, dynamic>;
           String email = userData['email'] ?? 'No Email';
-          String displayName = email.split('@').first.toUpperCase(); // Creates a name from email
+          
+          // Grabs the real name to display at the top of the profile
+          String displayName = userData['name'] ?? email.split('@').first.toUpperCase(); 
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(24),
@@ -137,7 +150,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 CircleAvatar(
                   radius: 50,
                   backgroundColor: Theme.of(context).colorScheme.primary,
-                  child: Text(displayName.substring(0, 1), style: const TextStyle(fontSize: 40, color: Colors.white)),
+                  child: Text(displayName.isNotEmpty ? displayName.substring(0, 1).toUpperCase() : '?', style: const TextStyle(fontSize: 40, color: Colors.white)),
                 ),
                 const SizedBox(height: 16),
                 Text(displayName, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
@@ -156,14 +169,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         const Divider(),
                         ListTile(leading: const Icon(Icons.apartment), title: const Text('Hostel'), subtitle: Text(userData['hostel'] ?? 'N/A')),
                         const Divider(),
-                        ListTile(leading: const Icon(Icons.info_outline), title: const Text('Bio'), subtitle: Text(userData['bio'] ?? 'No bio provided.')),
+                        ListTile(leading: const Icon(Icons.info_outline), title: const Text('Bio'), subtitle: Text(userData['bio']?.isEmpty ?? true ? 'No bio provided.' : userData['bio'])),
                       ],
                     ),
                   ),
                 ),
                 const SizedBox(height: 24),
 
-                // Only show Edit Button if it's their own profile
                 if (isOwnProfile)
                   SizedBox(
                     width: double.infinity,
