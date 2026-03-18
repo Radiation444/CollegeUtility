@@ -1,3 +1,4 @@
+import 'ride_share_feed.dart';
 import 'package:flutter/material.dart';
 // import 'package:flutter_dotenv/flutter_dotenv.dart'; // Uncomment when you fix the .env issue
 import 'package:firebase_core/firebase_core.dart';
@@ -128,8 +129,10 @@ class DashboardScreen extends StatelessWidget {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 child: InkWell(
                   onTap: () {
-                    // TODO: Navigate to Ride Sharing Screen
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Navigating to Ride Sharing...')));
+                    Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const RideShareFeed()),
+                    );                    
                   },
                   borderRadius: BorderRadius.circular(16),
                   child: Container(
