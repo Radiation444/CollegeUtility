@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'main.dart'; // To route back to Dashboard
+import 'main.dart'; 
 
 class ProfileSetupScreen extends StatefulWidget {
   const ProfileSetupScreen({super.key});
@@ -12,28 +12,55 @@ class ProfileSetupScreen extends StatefulWidget {
 
 class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   final _phoneController = TextEditingController();
-  final _deptController = TextEditingController();
   final _bioController = TextEditingController();
-  final _hostelController = TextEditingController();
+  
+  // Dropdown State Variables
+  String? _selectedDept;
+  String? _selectedHostel;
   bool _isLoading = false;
 
+  // Standardized Lists for the Dropdowns
+  final List<String> _departments = [
+    'Computer Science and Engineering',
+    'Electrical Engineering',
+    'Mechanical Engineering',
+    'Civil Engineering',
+    'Artificial Intelligence',
+    'Bioscience and Bioengineering',
+    'Other'
+  ];
+
+  final List<String> _hostels = [
+    'Hostel 1',
+    'Hostel 2',
+    'Hostel 3',
+    'Girls Hostel',
+    'Day Scholar'
+  ];
+
   Future<void> _saveProfile() async {
+    // Validation to ensure they picked an option from the dropdowns
+    if (_selectedDept == null || _selectedHostel == null || _phoneController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill out all required fields.')),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
     final user = FirebaseAuth.instance.currentUser;
 
     if (user != null) {
-      // Save all data to Firestore in a document named after their UID
       await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
         'email': user.email,
         'uid': user.uid,
         'phone': _phoneController.text.trim(),
-        'department': _deptController.text.trim(),
+        'department': _selectedDept, // Saving the dropdown choice
+        'hostel': _selectedHostel,   // Saving the dropdown choice
         'bio': _bioController.text.trim(),
-        'hostel': _hostelController.text.trim(),
         'isProfileComplete': true, 
       });
 
-      // Push them to the Dashboard once saved
       if (mounted) {
         Navigator.pushReplacement(
           context,
@@ -46,26 +73,90 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Complete Your Profile')),
-      body: Padding(
+      appBar: AppBar(
+        title: const Text('Complete Your Profile'),
+        elevation: 0,
+      ),
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
-        child: ListView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text('Welcome! Please fill out your details to continue.', style: TextStyle(fontSize: 18)),
-            const SizedBox(height: 24),
-            TextField(controller: _phoneController, decoration: const InputDecoration(labelText: 'Phone Number')),
-            const SizedBox(height: 16),
-            TextField(controller: _deptController, decoration: const InputDecoration(labelText: 'Department (e.g., CSE)')),
-            const SizedBox(height: 16),
-            TextField(controller: _hostelController, decoration: const InputDecoration(labelText: 'Hostel Name & Room')),
-            const SizedBox(height: 16),
-            TextField(controller: _bioController, decoration: const InputDecoration(labelText: 'Short Bio'), maxLines: 3),
+            const Text(
+              'Welcome!', 
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Let your campus know a bit about you before you start sharing rides and finding items.',
+              style: TextStyle(color: Colors.grey, fontSize: 16),
+            ),
             const SizedBox(height: 32),
+
+            // Phone Number
+            TextField(
+              controller: _phoneController, 
+              keyboardType: TextInputType.phone,
+              decoration: InputDecoration(
+                labelText: 'Phone Number *',
+                prefixIcon: const Icon(Icons.phone),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Department Dropdown
+            DropdownButtonFormField<String>(
+              decoration: InputDecoration(
+                labelText: 'Department *',
+                prefixIcon: const Icon(Icons.science),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              value: _selectedDept,
+              items: _departments.map((dept) {
+                return DropdownMenuItem(value: dept, child: Text(dept));
+              }).toList(),
+              onChanged: (value) => setState(() => _selectedDept = value),
+            ),
+            const SizedBox(height: 16),
+
+            // Hostel Dropdown
+            DropdownButtonFormField<String>(
+              decoration: InputDecoration(
+                labelText: 'Hostel *',
+                prefixIcon: const Icon(Icons.apartment),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              value: _selectedHostel,
+              items: _hostels.map((hostel) {
+                return DropdownMenuItem(value: hostel, child: Text(hostel));
+              }).toList(),
+              onChanged: (value) => setState(() => _selectedHostel = value),
+            ),
+            const SizedBox(height: 16),
+
+            // Bio
+            TextField(
+              controller: _bioController, 
+              decoration: InputDecoration(
+                labelText: 'Short Bio (Optional)',
+                alignLabelWithHint: true,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ), 
+              maxLines: 3,
+            ),
+            const SizedBox(height: 32),
+
+            // Save Button
             _isLoading 
               ? const Center(child: CircularProgressIndicator())
               : ElevatedButton(
                   onPressed: _saveProfile,
-                  child: const Text('Save Profile & Enter App'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text('Save Profile & Enter App', style: TextStyle(fontSize: 16)),
                 )
           ],
         ),

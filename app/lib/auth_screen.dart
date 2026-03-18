@@ -12,8 +12,8 @@ class _AuthScreenState extends State<AuthScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   String _errorMessage = '';
+  bool _isLoading = false;
 
-  // --- SIGN UP LOGIC ---
   Future<void> _signUp() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
@@ -23,48 +23,48 @@ class _AuthScreenState extends State<AuthScreen> {
       return; 
     }
 
+    setState(() => _isLoading = true);
     try {
-      // 1. Create the Auth Account (Firebase auto-logs them in here)
       UserCredential userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: password);
-
-      // 2. Send Verification Email
       await userCredential.user?.sendEmailVerification();
-
-      // 3. FORCE SIGN OUT (The StreamBuilder in main.dart is blocking the flash while this runs)
       await FirebaseAuth.instance.signOut();
-
-      // 4. Update UI with the exact requested message
+      
       setState(() {
         _errorMessage = 'Check your email for verification.';
+        _isLoading = false;
       });
-      
-      _passwordController.clear(); // Clear password for security
-
+      _passwordController.clear();
     } on FirebaseAuthException catch (e) {
-      setState(() => _errorMessage = e.message ?? 'Sign up failed');
+      setState(() {
+        _errorMessage = e.message ?? 'Sign up failed';
+        _isLoading = false;
+      });
     }
   }
 
-  // --- LOGIN LOGIC ---
   Future<void> _login() async {
+    setState(() => _isLoading = true);
     try {
       UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
 
-      // 1. Check if they are actually verified
       if (!userCredential.user!.emailVerified) {
-        await FirebaseAuth.instance.signOut(); // Kick them right back out
-        setState(() => _errorMessage = 'Not verified yet.');
+        await FirebaseAuth.instance.signOut();
+        setState(() {
+          _errorMessage = 'Not verified yet.';
+          _isLoading = false;
+        });
         return;
       }
-
-      // 2. If verified, the StreamBuilder in main.dart automatically routes them!
-      
+      // If verified, main.dart routes them!
     } on FirebaseAuthException catch (e) {
-      setState(() => _errorMessage = e.message ?? 'Login failed');
+      setState(() {
+        _errorMessage = e.message ?? 'Login failed';
+        _isLoading = false;
+      });
     }
   }
 
@@ -78,43 +78,92 @@ class _AuthScreenState extends State<AuthScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Campus App Access'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextField(
-              controller: _emailController,
-              decoration: const InputDecoration(labelText: 'College Email', border: OutlineInputBorder()),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _passwordController,
-              decoration: const InputDecoration(labelText: 'Password', border: OutlineInputBorder()),
-              obscureText: true,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              _errorMessage,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: _errorMessage.contains('Check your email') ? Colors.green : Colors.red,
-                fontWeight: FontWeight.bold,
+      backgroundColor: Colors.grey[100], // Soft background color
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // App Logo/Icon Placeholder
+              Icon(Icons.school_rounded, size: 80, color: Theme.of(context).colorScheme.primary),
+              const SizedBox(height: 16),
+              const Text('CampusConnect', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+              const Text('Exclusive to IITJ Students', style: TextStyle(color: Colors.grey)),
+              const SizedBox(height: 32),
+              
+              // The Login Card
+              Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    children: [
+                      TextField(
+                        controller: _emailController,
+                        decoration: InputDecoration(
+                          labelText: 'College Email',
+                          prefixIcon: const Icon(Icons.email_outlined),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: _passwordController,
+                        decoration: InputDecoration(
+                          labelText: 'Password',
+                          prefixIcon: const Icon(Icons.lock_outline),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        obscureText: true,
+                      ),
+                      const SizedBox(height: 16),
+                      
+                      // Error/Success Message
+                      if (_errorMessage.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 16.0),
+                          child: Text(
+                            _errorMessage,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: _errorMessage.contains('Check your email') ? Colors.green[700] : Colors.red,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      
+                      _isLoading 
+                        ? const CircularProgressIndicator()
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              ElevatedButton(
+                                onPressed: _login,
+                                style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                                child: const Text('Login', style: TextStyle(fontSize: 16)),
+                              ),
+                              const SizedBox(height: 12),
+                              OutlinedButton(
+                                onPressed: _signUp,
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                                child: const Text('Create Account', style: TextStyle(fontSize: 16)),
+                              ),
+                            ],
+                          ),
+                    ],
+                  ),
+                ),
               ),
-            ),
-            const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(onPressed: _login, child: const Text('Login')),
-                OutlinedButton(onPressed: _signUp, child: const Text('Sign Up')),
-              ],
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
