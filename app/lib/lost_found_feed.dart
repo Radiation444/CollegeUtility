@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'models/lost_found_post.dart';
 import 'widgets/lost_found_card.dart';
+import 'create_post_screen.dart';
 
 class LostFoundFeed extends StatelessWidget {
   const LostFoundFeed({super.key});
@@ -51,7 +52,10 @@ class LostFoundFeed extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // TODO: Navigate to Create Post Screen
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const CreatePostScreen()),
+          );
         },
         child: const Icon(Icons.add),
       ),
