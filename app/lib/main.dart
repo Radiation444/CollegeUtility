@@ -7,6 +7,7 @@ import 'firebase_options.dart';
 import 'auth_screen.dart';
 import 'lost_found_feed.dart';
 import 'profile_setup_screen.dart'; 
+import 'profile_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized(); 
@@ -21,6 +22,7 @@ class CampusUtilityApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Campus App',
       theme: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple)),
       home: StreamBuilder<User?>(
@@ -86,7 +88,21 @@ class DashboardScreen extends StatelessWidget {
         title: const Text('Campus Hub'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         elevation: 0,
+        leading: const Icon(Icons.home),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.person),
+            tooltip: 'My Profile',
+            onPressed: (){
+              final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+              if (currentUserId != null) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ProfileScreen(userId: currentUserId)),
+                );
+              }
+            },
+            ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () => FirebaseAuth.instance.signOut(),

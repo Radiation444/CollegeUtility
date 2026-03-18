@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/lost_found_post.dart';
+import '../profile_screen.dart';
 
 class LostFoundCard extends StatelessWidget {
   final LostFoundPost post;
@@ -44,9 +45,14 @@ class LostFoundCard extends StatelessWidget {
                 const SizedBox(width: 12),
                 InkWell(
                   onTap: () {
-                    // TODO: Navigate to User Profile using post.userId
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Go to $posterName\'s profile')));
-                  },
+                      // Navigates to the profile of whoever authored this post
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ProfileScreen(userId: post.userId),
+                        ),
+                      );
+                    },
                   child: Text(
                     posterName,
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),

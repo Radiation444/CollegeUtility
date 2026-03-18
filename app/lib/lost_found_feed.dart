@@ -40,6 +40,7 @@ class LostFoundFeed extends StatelessWidget {
           final posts = snapshot.data!.docs;
 
           return ListView.builder(
+            physics: const BouncingScrollPhysics(),
             itemCount: posts.length,
             itemBuilder: (context, index) {
               final doc = posts[index];

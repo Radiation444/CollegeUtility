@@ -88,8 +88,8 @@ class _AuthScreenState extends State<AuthScreen> {
               // App Logo/Icon Placeholder
               Icon(Icons.school_rounded, size: 80, color: Theme.of(context).colorScheme.primary),
               const SizedBox(height: 16),
-              const Text('CampusConnect', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
-              const Text('Exclusive to IITJ Students', style: TextStyle(color: Colors.grey)),
+              const Text('Campus Utility App', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+              const Text('Making life easier for IITJ Students', style: TextStyle(color: Colors.grey)),
               const SizedBox(height: 32),
               
               // The Login Card
