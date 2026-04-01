@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
+import 'map_picker_screen.dart';
+import 'package:latlong2/latlong.dart'; 
+import 'package:geoflutterfire_plus/geoflutterfire_plus.dart'; // THE NEW GEO PACKAGE
 
 class CreateRideScreen extends StatefulWidget {
   const CreateRideScreen({super.key});
@@ -23,12 +26,29 @@ class _CreateRideScreenState extends State<CreateRideScreen> {
   TimeOfDay? _selectedTime;
   bool _isLoading = false;
 
+  // NEW: Variables to hold the raw math data for the database!
+  LatLng? _originLatLng;
+  LatLng? _destLatLng;
+
   final List<String> _transportOptions = ['Cab', 'Auto', 'Bike'];
 
-  void _openMapPicker(TextEditingController controller) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Google Maps API integration required to pick on map.')),
+  Future<void> _openMapPicker(TextEditingController controller, String locationType) async {
+    final LatLng? pickedLocation = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MapPickerScreen(title: locationType),
+      ),
     );
+
+    if (pickedLocation != null) {
+      setState(() {
+        controller.text = "${pickedLocation.latitude.toStringAsFixed(4)}, ${pickedLocation.longitude.toStringAsFixed(4)}";
+        
+        // NEW: Save the actual raw coordinates in the background!
+        if (locationType == 'Pickup Location') _originLatLng = pickedLocation;
+        if (locationType == 'Drop Location') _destLatLng = pickedLocation;
+      });
+    }
   }
 
   Future<void> _pickDateTime() async {
@@ -59,6 +79,12 @@ class _CreateRideScreenState extends State<CreateRideScreen> {
       return;
     }
 
+    // NEW: Ensure they actually used the map to pick locations
+    if (_originLatLng == null || _destLatLng == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please use the map icons to select your locations.')));
+      return;
+    }
+
     setState(() => _isLoading = true);
     
     final departureDateTime = DateTime(
@@ -69,11 +95,33 @@ class _CreateRideScreenState extends State<CreateRideScreen> {
     final user = FirebaseAuth.instance.currentUser;
 
     try {
+      // --- THE BULLETPROOF NAME FIX ---
+      String finalPosterName = 'Student';
+      if (user != null) {
+        final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+        if (userDoc.exists && userDoc.data()!.containsKey('name')) {
+          finalPosterName = userDoc.get('name'); 
+        } else {
+          finalPosterName = user.displayName ?? 'Student'; 
+        }
+      }
+
+      // --- NEW GEOFIRE MATH ---
+      // This converts your coordinates into searchable hashes
+      final originGeo = GeoFirePoint(GeoPoint(_originLatLng!.latitude, _originLatLng!.longitude));
+      final destGeo = GeoFirePoint(GeoPoint(_destLatLng!.latitude, _destLatLng!.longitude));
+      // -------------------------
+
       await FirebaseFirestore.instance.collection('ride_shares').add({
         'userId': user?.uid,
-        'posterName': user?.displayName ?? 'Student', 
+        'posterName': finalPosterName, 
         'origin': _originController.text.trim(),
         'destination': _destController.text.trim(),
+        
+        // NEW: Save the geohashes to the database so the Feed can find them!
+        'originGeo': originGeo.data, 
+        'destGeo': destGeo.data,     
+
         'departureTime': departureDateTime,
         'transportMode': _transportMode,
         'availableSeats': _seats,
@@ -106,12 +154,13 @@ class _CreateRideScreenState extends State<CreateRideScreen> {
                 children: [
                   TextFormField(
                     controller: _originController,
+                    readOnly: true, // Force them to use the map
                     decoration: InputDecoration(
                       labelText: 'Pickup Location',
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       suffixIcon: IconButton(
                         icon: const Icon(Icons.map, color: Colors.blue),
-                        onPressed: () => _openMapPicker(_originController),
+                        onPressed: () => _openMapPicker(_originController,'Pickup Location'),
                       ),
                     ),
                     validator: (v) => v!.isEmpty ? 'Required' : null,
@@ -119,12 +168,13 @@ class _CreateRideScreenState extends State<CreateRideScreen> {
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _destController,
+                    readOnly: true, // Force them to use the map
                     decoration: InputDecoration(
                       labelText: 'Drop Location',
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       suffixIcon: IconButton(
                         icon: const Icon(Icons.map, color: Colors.red),
-                        onPressed: () => _openMapPicker(_destController),
+                        onPressed: () => _openMapPicker(_destController,'Drop Location'),
                       ),
                     ),
                     validator: (v) => v!.isEmpty ? 'Required' : null,
