@@ -9,16 +9,37 @@ import 'auth_screen.dart';
 import 'lost_found_feed.dart';
 import 'profile_setup_screen.dart'; 
 import 'profile_screen.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'services/notification_service.dart';
+
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  print("Handling a background message: ${message.messageId}");
+}
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized(); 
   // await dotenv.load(fileName: ".env"); // Temporarily bypassed
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   runApp(const CampusUtilityApp());
 }
-
-class CampusUtilityApp extends StatelessWidget {
+class CampusUtilityApp extends StatefulWidget {
   const CampusUtilityApp({super.key});
+
+  @override
+  State<CampusUtilityApp> createState() => _CampusUtilityAppState();
+}
+
+class _CampusUtilityAppState extends State<CampusUtilityApp> {
+  
+  @override
+  void initState() {
+    super.initState();
+    // THIS IS THE MISSING PIECE!
+    // As soon as the app boots, ask for permissions and get the token.
+    NotificationService.initialize();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,8 +56,6 @@ class CampusUtilityApp extends StatelessWidget {
           
           if (snapshot.hasData) {
             // THE ANTI-FLASH SHIELD:
-            // If Firebase auto-logged them in during signup, but they aren't verified,
-            // block them from going to the Gatekeeper. Keep them on the AuthScreen.
             if (!snapshot.data!.emailVerified) {
               return const AuthScreen();
             }
