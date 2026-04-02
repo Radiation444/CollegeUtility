@@ -1,0 +1,24 @@
+# --- Web Server & API ---
+fastapi
+uvicorn
+python-multipart
+
+# --- Databases & Cloud ---
+firebase-admin
+pinecone
+
+# --- AI & Data Processing ---
+torch
+torchvision
+transformers
+Pillow
+numpy
+matplotlib
+
+# --- OpenAI CLIP & Dependencies ---
+ftfy
+regex
+tqdm
+git+https://github.com/openai/CLIP.git
+
+python-dotenv

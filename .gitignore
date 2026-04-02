@@ -1,2 +1,6 @@
 firebase-key.json
 app/firebase-key.json
+.env
+app/.env
+venv/
+app/venv/

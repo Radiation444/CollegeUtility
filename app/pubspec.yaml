@@ -46,6 +46,7 @@ dependencies:
   geoflutterfire_plus: ^0.0.34
   firebase_messaging: ^16.1.3
   flutter_local_notifications: ^21.0.0
+  http: ^1.6.0
 
 dev_dependencies:
   flutter_test:

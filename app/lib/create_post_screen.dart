@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
   // --- Submit Post to Firestore ---
 import 'package:firebase_storage/firebase_storage.dart'; // Add this import at the top
 import 'package:path/path.dart' as p; // You might need: flutter pub add path
+import './services/api_service.dart'; // <-- ADD THIS
 
 class CreatePostScreen extends StatefulWidget {
   const CreatePostScreen({super.key});
@@ -88,13 +89,11 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     try {
       List<String> imageUrls = [];
 
-      // --- UPLOAD IMAGES TO FIREBASE STORAGE ---
+      // --- 1. UPLOAD IMAGES TO FIREBASE STORAGE ---
       for (var image in _selectedImages) {
-        // Create a unique filename using timestamp and original extension
         String fileName = '${DateTime.now().millisecondsSinceEpoch}${p.extension(image.path)}';
         Reference storageRef = FirebaseStorage.instance.ref().child('post_images/$fileName');
 
-        // Upload file (Handling both Web and Mobile)
         UploadTask uploadTask;
         if (kIsWeb) {
           uploadTask = storageRef.putData(await image.readAsBytes());
@@ -102,13 +101,12 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           uploadTask = storageRef.putFile(File(image.path));
         }
 
-        // Wait for upload to finish and get the URL
         TaskSnapshot snapshot = await uploadTask;
         String downloadUrl = await snapshot.ref.getDownloadURL();
         imageUrls.add(downloadUrl);
       }
 
-      // --- SAVE DOCUMENT TO FIRESTORE ---
+      // --- 2. SAVE DOCUMENT TO FIRESTORE ---
       await FirebaseFirestore.instance.collection('lost_found_posts').add({
         'userId': user?.uid,
         'type': _postType,
@@ -121,18 +119,44 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         'createdAt': FieldValue.serverTimestamp(),
         'dateTime': DateTime.now(),
         'attributes': _attributes,
-        'images': imageUrls, // Now using the real URLs from Storage!
+        'images': imageUrls, 
       });
+
+      // ==========================================================
+      // --- 3. TRIGGER THE AI MATCHING ENGINE (NEW CODE!) ---
+      // ==========================================================
+      // We only send it if it's a mobile device (File paths work differently on Web)
+      if (!kIsWeb && _selectedImages.isNotEmpty) {
+        debugPrint("Sending first image to AI Brain for analysis...");
+        
+        // Send the first selected image to Python
+        bool aiSuccess = await ApiService.uploadItem(
+          imageFile: File(_selectedImages.first.path),
+          status: _postType,   // 'Lost' or 'Found'
+          category: _itemType, // e.g., 'Electronics'
+        );
+
+        if (aiSuccess) {
+          debugPrint("✅ AI successfully processed the image!");
+        } else {
+          debugPrint("⚠️ AI processing failed, but Firebase upload succeeded.");
+        }
+      }
+      // ==========================================================
 
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Post published with images!')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Post published & analyzing for matches!'))
+        );
       }
     } catch (e) {
       print("Upload error: $e");
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error uploading: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error uploading: $e')));
+      }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
