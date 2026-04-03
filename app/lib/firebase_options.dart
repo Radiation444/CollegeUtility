@@ -4,6 +4,8 @@ import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
 
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 /// Default [FirebaseOptions] for use with your Firebase apps.
 ///
 /// Example:
@@ -40,8 +42,8 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyD2DPjLAQfvrQfwN2-6KWCMiWfmOQDr5aI',
+  static FirebaseOptions get web => FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_API_KEY_WEB'] ?? '',
     appId: '1:356246633532:web:5aba54efed9a6e64c0d739',
     messagingSenderId: '356246633532',
     projectId: 'college-utility-app-se',
@@ -50,16 +52,16 @@ class DefaultFirebaseOptions {
     measurementId: 'G-VWZR19KJJ8',
   );
 
-  static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyC81YUt7O_bQCQNhYPmas7uOaqMBBy2Qtk',
+  static FirebaseOptions get android => FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_API_KEY_ANDROID'] ?? '',
     appId: '1:356246633532:android:280e4b3ef54eb66cc0d739',
     messagingSenderId: '356246633532',
     projectId: 'college-utility-app-se',
     storageBucket: 'college-utility-app-se.firebasestorage.app',
   );
 
-  static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyCpEuqTHlpH2WJpBoZfost0ZZdLNjeQlHo',
+  static FirebaseOptions get ios => FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_API_KEY_IOS'] ?? '',
     appId: '1:356246633532:ios:4560b76bf43ef173c0d739',
     messagingSenderId: '356246633532',
     projectId: 'college-utility-app-se',
@@ -67,8 +69,8 @@ class DefaultFirebaseOptions {
     iosBundleId: 'com.example.flutterApplication1',
   );
 
-  static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyCpEuqTHlpH2WJpBoZfost0ZZdLNjeQlHo',
+  static FirebaseOptions get macos => FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_API_KEY_MACOS'] ?? '',
     appId: '1:356246633532:ios:4560b76bf43ef173c0d739',
     messagingSenderId: '356246633532',
     projectId: 'college-utility-app-se',
@@ -76,8 +78,8 @@ class DefaultFirebaseOptions {
     iosBundleId: 'com.example.flutterApplication1',
   );
 
-  static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyD2DPjLAQfvrQfwN2-6KWCMiWfmOQDr5aI',
+  static FirebaseOptions get windows => FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_API_KEY_WINDOWS'] ?? '',
     appId: '1:356246633532:web:6940cac7823ae5fdc0d739',
     messagingSenderId: '356246633532',
     projectId: 'college-utility-app-se',
