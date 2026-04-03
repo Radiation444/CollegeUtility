@@ -33,18 +33,23 @@ class _CreateRideScreenState extends State<CreateRideScreen> {
   final List<String> _transportOptions = ['Cab', 'Auto', 'Bike'];
 
   Future<void> _openMapPicker(TextEditingController controller, String locationType) async {
-    final LatLng? pickedLocation = await Navigator.push(
+    // We expect a Map to come back now, not just LatLng!
+    final result = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => MapPickerScreen(title: locationType),
       ),
     );
 
-    if (pickedLocation != null) {
+    if (result != null && result is Map) {
+      final LatLng pickedLocation = result['location'];
+      final String pickedAddress = result['address']; // Grab the human name!
+
       setState(() {
-        controller.text = "${pickedLocation.latitude.toStringAsFixed(4)}, ${pickedLocation.longitude.toStringAsFixed(4)}";
+        // Show the beautiful name in the text field instead of the math!
+        controller.text = pickedAddress; 
         
-        // NEW: Save the actual raw coordinates in the background!
+        // Still save the raw math in the background for Firebase
         if (locationType == 'Pickup Location') _originLatLng = pickedLocation;
         if (locationType == 'Drop Location') _destLatLng = pickedLocation;
       });
