@@ -6,6 +6,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:college_utility_application/features/chat/chat.dart';
+import 'my_posts_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
 final String userId;
@@ -371,6 +372,23 @@ return Scaffold(
                     _showEditProfileSheet(userData),
                 icon: const Icon(Icons.edit),
                 label: const Text("Edit Profile"),
+              ),
+              const SizedBox(height: 10),
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const MyPostsScreen(),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.list_alt, color: Colors.blue),
+                label: const Text("My Lost & Found Posts"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.black87,
+                ),
               ),
             ]
           ],

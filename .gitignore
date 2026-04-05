@@ -5,4 +5,4 @@ app/.env
 venv/
 app/venv/
 metric.py
-projetc_metrics_report.txt
+project_metrics_report.txt
