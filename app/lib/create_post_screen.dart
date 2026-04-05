@@ -76,10 +76,13 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
 
 
-  Future<void> _submitPost() async {
+Future<void> _submitPost() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_selectedImages.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please add at least one image.')));
+    
+    if (_postType == 'Found' && _selectedImages.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please add at least one image to report a Found item.'))
+      );
       return;
     }
 
@@ -119,25 +122,29 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         'createdAt': FieldValue.serverTimestamp(),
         'dateTime': DateTime.now(),
         'attributes': _attributes,
-        'images': imageUrls, 
+        'images': imageUrls, // Will just be an empty list [] for text-only Lost posts
       });
 
       // ==========================================================
-      // --- 3. TRIGGER THE AI MATCHING ENGINE (NEW CODE!) ---
+      // --- 3. TRIGGER THE AI MATCHING ENGINE ---
       // ==========================================================
-      // We only send it if it's a mobile device (File paths work differently on Web)
-      if (!kIsWeb && _selectedImages.isNotEmpty) {
-        debugPrint("Sending first image to AI Brain for analysis...");
+      if (!kIsWeb) {
+        debugPrint("Sending data to AI Brain for analysis...");
         
-        // Send the first selected image to Python
+        File? imageToSend;
+        if (_selectedImages.isNotEmpty) {
+          imageToSend = File(_selectedImages.first.path);
+        }
+
         bool aiSuccess = await ApiService.uploadItem(
-          imageFile: File(_selectedImages.first.path),
+          imageFile: imageToSend, 
           status: _postType,   // 'Lost' or 'Found'
           category: _itemType, // e.g., 'Electronics'
+          description: _descController.text.trim(), 
         );
 
         if (aiSuccess) {
-          debugPrint("✅ AI successfully processed the image!");
+          debugPrint("✅ AI successfully processed the data!");
         } else {
           debugPrint("⚠️ AI processing failed, but Firebase upload succeeded.");
         }

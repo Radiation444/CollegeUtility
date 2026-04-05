@@ -8,9 +8,10 @@ class ApiService {
   static const String baseUrl = 'http://10.0.2.2:8000';
 
   static Future<bool> uploadItem({
-    required File imageFile,
+    File? imageFile,
     required String status,
     required String category,
+    required String description,
   }) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
@@ -38,7 +39,7 @@ class ApiService {
       request.files.add(
         await http.MultipartFile.fromPath(
           'file',
-          imageFile.path,
+          imageFile!.path,
         ),
       );
 
@@ -58,4 +59,4 @@ class ApiService {
       return false;
     }
   }
-}
+}   

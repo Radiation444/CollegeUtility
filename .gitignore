@@ -4,3 +4,5 @@ app/firebase-key.json
 app/.env
 venv/
 app/venv/
+metric.py
+projetc_metrics_report.txt

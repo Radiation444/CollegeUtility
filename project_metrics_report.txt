@@ -1,0 +1,141 @@
+=========================================================
+ COLLEGE UTILITY - STRICT METRICS REPORT
+=========================================================
+
+--- FILE: .\metric.py ---
+ABC Metric: A=61, B=100, C=19 | Score: 118.67 (Serious concern)
+Halstead: n1=40, n2=259, N1=1282, N2=986
+          Length(N)=2268, Vocab(n)=299
+          Volume(V)=18652.04, Difficulty(D)=76.14, Effort(E)=1420147.28
+
+--- FILE: .\app\main.py ---
+ABC Metric: A=24, B=50, C=5 | Score: 55.69 (Justifiable, but borderline)
+Halstead: n1=27, n2=273, N1=542, N2=492
+          Length(N)=1034, Vocab(n)=300
+          Volume(V)=8508.60, Difficulty(D)=24.33, Effort(E)=207011.40
+
+--- FILE: .\app\test_notification.py ---
+ABC Metric: A=4, B=8, C=2 | Score: 9.17 (Awesome)
+Halstead: n1=17, n2=66, N1=74, N2=93
+          Length(N)=167, Vocab(n)=83
+          Volume(V)=1064.63, Difficulty(D)=11.98, Effort(E)=12751.38
+
+--- FILE: .\app\lib\auth_screen.dart ---
+ABC Metric: A=23, B=88, C=19 | Score: 92.92 (Red flag territory)
+Halstead: n1=26, n2=156, N1=574, N2=350
+          Length(N)=924, Vocab(n)=182
+          Volume(V)=6937.20, Difficulty(D)=29.17, Effort(E)=202335.07
+
+--- FILE: .\app\lib\create_post_screen.dart ---
+ABC Metric: A=49, B=140, C=48 | Score: 155.9 (Serious concern)
+Halstead: n1=29, n2=277, N1=952, N2=586
+          Length(N)=1538, Vocab(n)=306
+          Volume(V)=12699.86, Difficulty(D)=30.68, Effort(E)=389569.43
+
+--- FILE: .\app\lib\create_ride_screen.dart ---
+ABC Metric: A=42, B=143, C=58 | Score: 159.93 (Serious concern)
+Halstead: n1=31, n2=257, N1=970, N2=592
+          Length(N)=1562, Vocab(n)=288
+          Volume(V)=12761.42, Difficulty(D)=35.70, Effort(E)=455637.42
+
+--- FILE: .\app\lib\firebase_options.dart ---
+ABC Metric: A=5, B=9, C=6 | Score: 11.92 (Good enough)
+Halstead: n1=20, n2=69, N1=227, N2=202
+          Length(N)=429, Vocab(n)=89
+          Volume(V)=2778.09, Difficulty(D)=29.28, Effort(E)=81329.58
+
+--- FILE: .\app\lib\lost_found_feed.dart ---
+ABC Metric: A=4, B=29, C=6 | Score: 29.88 (Might need refactoring)
+Halstead: n1=23, n2=103, N1=232, N2=144
+          Length(N)=376, Vocab(n)=126
+          Volume(V)=2623.46, Difficulty(D)=16.08, Effort(E)=42179.08
+
+--- FILE: .\app\lib\main.dart ---
+ABC Metric: A=7, B=103, C=24 | Score: 105.99 (Serious concern)
+Halstead: n1=29, n2=202, N1=722, N2=429
+          Length(N)=1151, Vocab(n)=231
+          Volume(V)=9037.36, Difficulty(D)=30.79, Effort(E)=278301.57
+
+--- FILE: .\app\lib\map_picker_screen.dart ---
+ABC Metric: A=4, B=21, C=9 | Score: 23.19 (Might need refactoring)
+Halstead: n1=24, n2=87, N1=193, N2=122
+          Length(N)=315, Vocab(n)=111
+          Volume(V)=2140.24, Difficulty(D)=16.83, Effort(E)=36015.09
+
+--- FILE: .\app\lib\profile_screen.dart ---
+ABC Metric: A=29, B=144, C=64 | Score: 160.23 (Serious concern)
+Halstead: n1=29, n2=237, N1=993, N2=597
+          Length(N)=1590, Vocab(n)=266
+          Volume(V)=12807.90, Difficulty(D)=36.53, Effort(E)=467812.57
+
+--- FILE: .\app\lib\profile_setup_screen.dart ---
+ABC Metric: A=17, B=86, C=27 | Score: 91.73 (Red flag territory)
+Halstead: n1=29, n2=189, N1=572, N2=374
+          Length(N)=946, Vocab(n)=218
+          Volume(V)=7348.70, Difficulty(D)=28.69, Effort(E)=210857.21
+
+--- FILE: .\app\lib\ride_share_feed.dart ---
+ABC Metric: A=23, B=81, C=51 | Score: 98.44 (Red flag territory)
+Halstead: n1=29, n2=207, N1=673, N2=407
+          Length(N)=1080, Vocab(n)=236
+          Volume(V)=8513.25, Difficulty(D)=28.51, Effort(E)=242710.01
+
+--- FILE: .\app\lib\models\lost_found_post.dart ---
+ABC Metric: A=0, B=9, C=38 | Score: 39.05 (Might need refactoring)
+Halstead: n1=18, n2=40, N1=192, N2=147
+          Length(N)=339, Vocab(n)=58
+          Volume(V)=1985.86, Difficulty(D)=33.07, Effort(E)=65682.17
+
+--- FILE: .\app\lib\models\ride_post.dart ---
+ABC Metric: A=0, B=7, C=26 | Score: 26.93 (Might need refactoring)
+Halstead: n1=18, n2=34, N1=152, N2=118
+          Length(N)=270, Vocab(n)=52
+          Volume(V)=1539.12, Difficulty(D)=31.24, Effort(E)=48074.83
+
+--- FILE: .\app\lib\services\api_service.dart ---
+ABC Metric: A=9, B=17, C=5 | Score: 19.87 (Good enough)
+Halstead: n1=26, n2=73, N1=165, N2=126
+          Length(N)=291, Vocab(n)=99
+          Volume(V)=1929.14, Difficulty(D)=22.44, Effort(E)=43286.79
+
+--- FILE: .\app\lib\services\notification_service.dart ---
+ABC Metric: A=7, B=33, C=13 | Score: 36.15 (Might need refactoring)
+Halstead: n1=26, n2=111, N1=251, N2=199
+          Length(N)=450, Vocab(n)=137
+          Volume(V)=3194.11, Difficulty(D)=23.31, Effort(E)=74443.01
+
+--- FILE: .\app\lib\widgets\lost_found_card.dart ---
+ABC Metric: A=2, B=90, C=6 | Score: 90.22 (Red flag territory)
+Halstead: n1=22, n2=160, N1=625, N2=365
+          Length(N)=990, Vocab(n)=182
+          Volume(V)=7432.72, Difficulty(D)=25.09, Effort(E)=186514.73
+
+--- FILE: .\app\test\widget_test.dart ---
+ABC Metric: A=0, B=15, C=0 | Score: 15.0 (Good enough)
+Halstead: n1=14, n2=26, N1=79, N2=47
+          Length(N)=126, Vocab(n)=40
+          Volume(V)=670.56, Difficulty(D)=12.65, Effort(E)=8485.20
+
+=========================================================
+ PROJECT GLOBAL AGGREGATE
+=========================================================
+HALSTEAD METRICS (AGGREGATED):
+  Total Operators (N1):      9470
+  Total Operands (N2):       6376
+  Unique Operators (n1):     54
+  Unique Operands (n2 avg):  2826
+  Program Volume (V):        182099.90
+  Program Difficulty (D):    60.92
+  Program Effort (E):        11093015.82
+  Time to Program (T):       616278.66 seconds
+  Delivered Bugs (B):        16.5798
+
+ABC METRIC (AGGREGATED):
+  Assignments (A):           310
+  Branches (B):              1173
+  Conditions (C):            426
+  Global ABC Magnitude:      1285.89
+  Project Interpretation:    Critically unmaintainable
+=========================================================
+GLOBAL UNIQUE OPERATORS IDENTIFIED:
+!, !=, %, &&, (, ), *, +, ,, -, ., /, :, ;, <, <=, =, ==, >, >=, ?, [, ], and, as, async, await, case, class, const, def, default, do, elif, else, except, final, finally, for, from, if, import, not, or, pass, return, switch, try, var, void, while, {, ||, }
