@@ -7,6 +7,7 @@ class MessageModel {
   final String message;
   final Timestamp timestamp;
   final bool isRead;
+  final String type;
 
   MessageModel({
     required this.id,
@@ -15,6 +16,7 @@ class MessageModel {
     required this.message,
     required this.timestamp,
     required this.isRead,
+    required this.type,
   });
 
   factory MessageModel.fromMap(Map<String, dynamic> map, String documentId) {
@@ -25,6 +27,7 @@ class MessageModel {
       message: map['message'] ?? '',
       timestamp: map['timestamp'] ?? Timestamp.now(),
       isRead: map['isRead'] ?? false,
+      type: map['type'] ?? 'text',
     );
   }
 

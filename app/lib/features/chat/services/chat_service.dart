@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/message_model.dart';
 
+
+
 class ChatService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -43,6 +45,29 @@ class ChatService {
       'lastSenderId': currentUserId,
     }, SetOptions(merge: true));
   }
+
+    Future<void> sendImageMessage({
+    required String receiverId,
+    required String imageUrl,
+  }) async {
+    final currentUser = FirebaseAuth.instance.currentUser!;
+
+    final chatId = getChatId(receiverId);
+
+    await FirebaseFirestore.instance
+        .collection("chats")
+        .doc(chatId)
+        .collection("messages")
+        .add({
+      "senderId": currentUser.uid,
+      "receiverId": receiverId,
+      "message": imageUrl,
+      "type": "image",
+      "timestamp": FieldValue.serverTimestamp(),
+      "isRead": false,
+    });
+  }
+
 
   /// Get messages stream (real-time)
   Stream<List<MessageModel>> getMessages(String otherUserId) {
