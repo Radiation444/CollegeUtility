@@ -13,15 +13,23 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:uuid/uuid.dart';
 
 class ChatScreen extends StatefulWidget {
+
+  // Existing
   final String otherUserId;
   final String otherUserName;
   final String? otherUserAvatarUrl;
+
+  // ✅ Added (for LostFoundCard compatibility)
+  final String? receiverId;
+  final String? receiverName;
 
   const ChatScreen({
     super.key,
     required this.otherUserId,
     required this.otherUserName,
     this.otherUserAvatarUrl,
+    this.receiverId,
+    this.receiverName,
   });
 
   @override
@@ -35,12 +43,18 @@ class _ChatScreenState extends State<ChatScreen> {
 
   final ImagePicker _picker = ImagePicker();
 
+  String get receiverId =>
+      widget.receiverId ?? widget.otherUserId;
+
+  String get receiverName =>
+      widget.receiverName ?? widget.otherUserName;
+
   void sendMessage() async {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
 
     await _chatService.sendMessage(
-      receiverId: widget.otherUserId,
+      receiverId: receiverId,
       message: text,
     );
 
@@ -55,7 +69,7 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
-  /// Pick Image (Web + Mobile)
+  /// Pick Image
   Future<dynamic> pickImage() async {
     if (kIsWeb) {
       FilePickerResult? result =
@@ -78,7 +92,7 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  /// Upload Image (Web + Mobile)
+  /// Upload Image
   Future<String> uploadImage(dynamic image) async {
     String fileName = const Uuid().v4();
 
@@ -109,7 +123,7 @@ class _ChatScreenState extends State<ChatScreen> {
     String imageUrl = await uploadImage(image);
 
     await _chatService.sendImageMessage(
-      receiverId: widget.otherUserId,
+      receiverId: receiverId,
       imageUrl: imageUrl,
     );
   }
@@ -127,11 +141,11 @@ class _ChatScreenState extends State<ChatScreen> {
                   ? NetworkImage(widget.otherUserAvatarUrl!)
                   : null,
               child: widget.otherUserAvatarUrl == null
-                  ? Text(widget.otherUserName[0])
+                  ? Text(receiverName[0])
                   : null,
             ),
             const SizedBox(width: 10),
-            Text(widget.otherUserName),
+            Text(receiverName),
           ],
         ),
       ),
@@ -140,7 +154,7 @@ class _ChatScreenState extends State<ChatScreen> {
           /// Messages
           Expanded(
             child: StreamBuilder<List<MessageModel>>(
-              stream: _chatService.getMessages(widget.otherUserId),
+              stream: _chatService.getMessages(receiverId),
               builder: (context, snapshot) {
                 if (snapshot.connectionState ==
                     ConnectionState.waiting) {
@@ -154,7 +168,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 if (messages.isEmpty) {
                   return Center(
                     child: Text(
-                      "Start chatting with ${widget.otherUserName}",
+                      "Start chatting with $receiverName",
                       style: const TextStyle(fontSize: 16),
                     ),
                   );
@@ -169,7 +183,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     final isMe =
                         message.senderId == currentUser?.uid;
 
-                      if (message.type == "image") {
+                    if (message.type == "image") {
                       return Align(
                         alignment:
                             isMe ? Alignment.centerRight : Alignment.centerLeft,
