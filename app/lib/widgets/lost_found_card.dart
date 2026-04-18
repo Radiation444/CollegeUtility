@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/lost_found_post.dart';
 import '../profile_screen.dart';
+import '../features/chat/screens/chat_screen.dart';
 
 class LostFoundCard extends StatelessWidget {
   final LostFoundPost post;
@@ -59,7 +60,7 @@ class LostFoundCard extends StatelessWidget {
                   ),
                 ),
                 const Spacer(),
-                // Simple date format (You can use the 'timeago' package later for "2 hours ago")
+                // Simple date format
                 Text(
                   "${post.createdAt.day}/${post.createdAt.month}/${post.createdAt.year}",
                   style: const TextStyle(color: Colors.grey, fontSize: 12),
@@ -108,7 +109,7 @@ class LostFoundCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   color: Colors.grey[200],
                   image: DecorationImage(
-                    image: NetworkImage(post.images.first), // Shows first image
+                    image: NetworkImage(post.images.first),
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -126,7 +127,7 @@ class LostFoundCard extends StatelessWidget {
             Text(post.description, style: TextStyle(color: Colors.grey[800], fontSize: 14)),
             const SizedBox(height: 12),
 
-            // Attributes Chips (Parsed from JSON)
+            // Attributes Chips
             if (post.attributes.isNotEmpty)
               Wrap(
                 spacing: 8,
@@ -152,7 +153,10 @@ class LostFoundCard extends StatelessWidget {
                 const Spacer(),
                 const Icon(Icons.access_time, size: 16, color: Colors.blueAccent),
                 const SizedBox(width: 4),
-                Text("${post.dateTime.hour}:${post.dateTime.minute.toString().padLeft(2, '0')}", style: const TextStyle(fontSize: 13)),
+                Text(
+                  "${post.dateTime.hour}:${post.dateTime.minute.toString().padLeft(2, '0')}", 
+                  style: const TextStyle(fontSize: 13)
+                ),
               ],
             ),
             const SizedBox(height: 16),
@@ -162,12 +166,22 @@ class LostFoundCard extends StatelessWidget {
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: () {
-                  // TODO: Open chat using MatchingEngine/Chat system
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ChatScreen(
+                        otherUserId: post.userId,
+                       otherUserName: posterName,
+                      ),
+                    ),
+                  );
                 },
                 icon: const Icon(Icons.chat_bubble_outline, size: 18),
                 label: const Text('Contact Poster'),
                 style: ElevatedButton.styleFrom(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
               ),
             ),
