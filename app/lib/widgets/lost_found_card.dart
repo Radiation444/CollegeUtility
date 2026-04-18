@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // ADDED THIS
 import '../models/lost_found_post.dart';
 import '../profile_screen.dart';
-import '../features/chat/screens/chat_screen.dart';
+import '../chat_room_screen.dart'; // UPDATED TO YOUR NEW UNIVERSAL CHAT
 
 class LostFoundCard extends StatelessWidget {
   final LostFoundPost post;
@@ -161,20 +163,56 @@ class LostFoundCard extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // --- 6. FOOTER ACTIONS ---
+            // --- 6. FOOTER ACTIONS (UNIVERSAL CHAT BUTTON) ---
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ChatScreen(
-                        otherUserId: post.userId,
-                       otherUserName: posterName,
+                onPressed: () async {
+                  final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+                  final postOwnerId = post.userId;
+
+                  // Don't let users message themselves!
+                  if (currentUserId == null || currentUserId == postOwnerId) return;
+
+                  // 1. Calculate Universal Chat ID
+                  List<String> users = [currentUserId, postOwnerId];
+                  users.sort();
+                  String chatId = "${users[0]}_${users[1]}";
+
+                  // 2. Safely create room
+                  await FirebaseFirestore.instance.collection('chats').doc(chatId).set({
+                    'participants': [currentUserId, postOwnerId],
+                  }, SetOptions(merge: true));
+
+                  // 3. Send automated icebreaker context message
+                  final icebreakerText = 'Hi! I am messaging you regarding your post about the ${post.title}.';
+                  await FirebaseFirestore.instance.collection('chats').doc(chatId).collection('messages').add({
+                    'senderId': currentUserId,
+                    'text': icebreakerText,
+                    'timestamp': FieldValue.serverTimestamp(),
+                    'type': 'text', 
+                  });
+
+                  // 4. Update Inbox Badges
+                  await FirebaseFirestore.instance.collection('chats').doc(chatId).update({
+                    'lastMessage': icebreakerText,
+                    'lastTimestamp': FieldValue.serverTimestamp(),
+                    'unreadCount_$postOwnerId': FieldValue.increment(1),
+                  });
+
+                  // 5. Jump to Chat Room
+                  if (context.mounted) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ChatRoomScreen(
+                          chatId: chatId,
+                          otherUserId: postOwnerId,
+                          otherUserName: posterName,
+                        ),
                       ),
-                    ),
-                  );
+                    );
+                  }
                 },
                 icon: const Icon(Icons.chat_bubble_outline, size: 18),
                 label: const Text('Contact Poster'),
