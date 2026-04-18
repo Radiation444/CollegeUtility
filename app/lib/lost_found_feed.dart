@@ -16,6 +16,7 @@ class _LostFoundFeedState extends State<LostFoundFeed> {
   String _searchQuery = '';
   String _selectedCategory = 'All';
   bool _sortDescending = true; // true = Newest first
+  String _postTypeFilter = 'All';
 
   final List<String> _categories = [
     'All', 'Electronics', 'Documents', 'Clothing', 'Keys', 'Wallets', 'Books', 'Other'
@@ -112,7 +113,29 @@ class _LostFoundFeedState extends State<LostFoundFeed> {
               ],
             ),
           ),
-
+Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: SizedBox(
+              width: double.infinity,
+              child: SegmentedButton<String>(
+                segments: const [
+                  ButtonSegment(value: 'All', label: Text('All')),
+                  ButtonSegment(value: 'Lost', label: Text('Lost Items')),
+                  ButtonSegment(value: 'Found', label: Text('Found Items')),
+                ],
+                selected: {_postTypeFilter},
+                onSelectionChanged: (Set<String> newSelection) {
+                  setState(() {
+                    _postTypeFilter = newSelection.first;
+                  });
+                },
+                style: SegmentedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  selectedBackgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                ),
+              ),
+            ),
+          ),
           // --- 4. FIREBASE STREAM ---
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
@@ -133,12 +156,22 @@ class _LostFoundFeedState extends State<LostFoundFeed> {
                   );
                 }
 
-                // --- 5. LOCAL TEXT SEARCH FILTERING ---
+// --- 5. LOCAL FILTERING ---
                 var rawDocs = snapshot.data!.docs;
                 var filteredDocs = rawDocs;
 
+                // A. Filter by Post Type (Lost/Found/All)
+                if (_postTypeFilter != 'All') {
+                  filteredDocs = filteredDocs.where((doc) {
+                    var data = doc.data() as Map<String, dynamic>;
+                    var type = data['type'] ?? 'Lost';
+                    return type == _postTypeFilter;
+                  }).toList();
+                }
+
+                // B. Filter by Text Search
                 if (_searchQuery.isNotEmpty) {
-                  filteredDocs = rawDocs.where((doc) {
+                  filteredDocs = filteredDocs.where((doc) {
                     var data = doc.data() as Map<String, dynamic>;
                     var title = (data['title'] ?? '').toString().toLowerCase();
                     var desc = (data['description'] ?? '').toString().toLowerCase();
@@ -148,7 +181,7 @@ class _LostFoundFeedState extends State<LostFoundFeed> {
 
                 if (filteredDocs.isEmpty) {
                   return const Center(
-                    child: Text('No items match your search.', style: TextStyle(color: Colors.grey, fontSize: 16)),
+                    child: Text('No items match your filters.', style: TextStyle(color: Colors.grey, fontSize: 16)),
                   );
                 }
 
