@@ -137,10 +137,16 @@ class _RideShareFeedState extends State<RideShareFeed> {
                     tileColor: Colors.grey[100],
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     onTap: () async {
-                      final LatLng? picked = await Navigator.push(
+                      // --- THE FIX IS HERE! ---
+                      // We now expect a Map result instead of a strict LatLng
+                      final result = await Navigator.push(
                         context, MaterialPageRoute(builder: (context) => const MapPickerScreen(title: 'Search Center'))
                       );
-                      if (picked != null) setSheetState(() => _searchLocation = picked);
+                      
+                      // If they picked a location, we extract just the 'location' math part!
+                      if (result != null && result is Map) {
+                        setSheetState(() => _searchLocation = result['location']);
+                      }
                     },
                   ),
                   
