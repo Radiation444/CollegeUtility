@@ -93,25 +93,33 @@ Future<void> _submitPost() async {
       List<String> imageUrls = [];
 
       // --- 1. UPLOAD IMAGES TO FIREBASE STORAGE ---
+// --- 1. UPLOAD IMAGES TO FIREBASE STORAGE ---
       for (var image in _selectedImages) {
-        String fileName = '${DateTime.now().millisecondsSinceEpoch}${p.extension(image.path)}';
+        // 1. Force an extension if the picker fails to find one
+        String ext = p.extension(image.path);
+        if (ext.isEmpty) ext = '.jpg'; 
+        
+        String fileName = '${DateTime.now().millisecondsSinceEpoch}$ext';
         Reference storageRef = FirebaseStorage.instance.ref().child('post_images/$fileName');
+
+        // 2. FORCE Firebase to recognize this as an image!
+        SettableMetadata metadata = SettableMetadata(contentType: 'image/jpeg');
 
         UploadTask uploadTask;
         if (kIsWeb) {
-          uploadTask = storageRef.putData(await image.readAsBytes());
+          uploadTask = storageRef.putData(await image.readAsBytes(), metadata); // Added metadata
         } else {
-          uploadTask = storageRef.putFile(File(image.path));
+          uploadTask = storageRef.putFile(File(image.path), metadata); // Added metadata
         }
 
         TaskSnapshot snapshot = await uploadTask;
         String downloadUrl = await snapshot.ref.getDownloadURL();
         imageUrls.add(downloadUrl);
       }
-
       // --- 2. SAVE DOCUMENT TO FIRESTORE ---
       await FirebaseFirestore.instance.collection('lost_found_posts').add({
         'userId': user?.uid,
+        'posterName': FirebaseAuth.instance.currentUser?.displayName ?? 'Student',
         'type': _postType,
         'title': _titleController.text.trim(),
         'description': _descController.text.trim(),

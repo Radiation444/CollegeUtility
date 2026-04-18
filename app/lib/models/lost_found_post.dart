@@ -4,6 +4,7 @@ class LostFoundPost {
   // Inherited from Post
   final String postId;
   final String userId;
+  final String posterName; // <-- NEW: Added this field
   final String type; // e.g., 'Lost' or 'Found'
   final String title;
   final String description;
@@ -21,6 +22,7 @@ class LostFoundPost {
   LostFoundPost({
     required this.postId,
     required this.userId,
+    required this.posterName, // <-- NEW: Required in constructor
     required this.type,
     required this.title,
     required this.description,
@@ -39,6 +41,8 @@ class LostFoundPost {
     return LostFoundPost(
       postId: documentId,
       userId: map['userId'] ?? '',
+      // <-- NEW: Extracts the name, defaults to 'Student' if not found in older posts
+      posterName: map['posterName'] ?? 'Student', 
       type: map['type'] ?? 'Lost',
       title: map['title'] ?? 'Untitled',
       description: map['description'] ?? '',

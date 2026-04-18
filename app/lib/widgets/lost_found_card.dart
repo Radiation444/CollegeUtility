@@ -1,19 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // ADDED THIS
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/lost_found_post.dart';
 import '../profile_screen.dart';
-import '../chat_room_screen.dart'; // UPDATED TO YOUR NEW UNIVERSAL CHAT
+import '../chat_room_screen.dart';
 
 class LostFoundCard extends StatelessWidget {
   final LostFoundPost post;
   
-  // In a NoSQL database, you often save the poster's name directly on the post 
-  // to avoid doing a secondary lookup, or you fetch it separately. 
-  // We'll pass it in here for the UI.
-  final String posterName; 
-
-  const LostFoundCard({super.key, required this.post, this.posterName = "Student"});
+  const LostFoundCard({super.key, required this.post});
 
   // Helper to determine badge color based on status
   Color _getStatusColor(String status) {
@@ -57,7 +52,7 @@ class LostFoundCard extends StatelessWidget {
                       );
                     },
                   child: Text(
-                    posterName,
+                    post.posterName, // <-- UPDATED: Now reads directly from the model
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                 ),
@@ -102,49 +97,37 @@ class LostFoundCard extends StatelessWidget {
             const SizedBox(height: 12),
 
             // --- 3. IMAGE SECTION ---
+// --- 3. IMAGE SECTION ---
             if (post.images.isNotEmpty)
-              Container(
-                height: 200,
-                width: double.infinity,
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  color: Colors.grey[200],
-                  image: DecorationImage(
-                    image: NetworkImage(post.images.first),
-                    fit: BoxFit.cover,
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => FullScreenImageScreen(
+                        imageUrl: post.images.first,
+                        heroTag: 'image_${post.postId}', // Unique tag for the animation
+                      ),
+                    ),
+                  );
+                },
+                child: Hero(
+                  tag: 'image_${post.postId}', // Must match the tag in the new screen
+                  child: Container(
+                    height: 200,
+                    width: double.infinity,
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: Colors.grey[200],
+                      image: DecorationImage(
+                        image: NetworkImage(post.images.first),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
                   ),
                 ),
               ),
-
-            // --- 4. DETAILS SECTION ---
-            Row(
-              children: [
-                const Icon(Icons.category, size: 16, color: Colors.grey),
-                const SizedBox(width: 4),
-                Text('${post.itemName} • ${post.itemType}', style: const TextStyle(fontWeight: FontWeight.w600)),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(post.description, style: TextStyle(color: Colors.grey[800], fontSize: 14)),
-            const SizedBox(height: 12),
-
-            // Attributes Chips
-            if (post.attributes.isNotEmpty)
-              Wrap(
-                spacing: 8,
-                runSpacing: 4,
-                children: post.attributes.entries.map((entry) {
-                  return Chip(
-                    label: Text('${entry.key}: ${entry.value}', style: const TextStyle(fontSize: 12)),
-                    backgroundColor: Colors.grey[100],
-                    side: BorderSide.none,
-                    padding: EdgeInsets.zero,
-                  );
-                }).toList(),
-              ),
-            const SizedBox(height: 16),
-            const Divider(),
 
             // --- 5. LOCATION & TIME SECTION ---
             Row(
@@ -208,7 +191,7 @@ class LostFoundCard extends StatelessWidget {
                         builder: (context) => ChatRoomScreen(
                           chatId: chatId,
                           otherUserId: postOwnerId,
-                          otherUserName: posterName,
+                          otherUserName: post.posterName, // <-- UPDATED: Passes the name to the chat screen
                         ),
                       ),
                     );
@@ -224,6 +207,51 @@ class LostFoundCard extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+// Add this at the bottom of your lost_found_card.dart file
+
+class FullScreenImageScreen extends StatelessWidget {
+  final String imageUrl;
+  final String heroTag;
+
+  const FullScreenImageScreen({
+    super.key,
+    required this.imageUrl,
+    required this.heroTag,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        iconTheme: const IconThemeData(color: Colors.white),
+        elevation: 0,
+        // The back button is automatically added by the AppBar
+      ),
+      body: Center(
+        // InteractiveViewer gives you free pinch-to-zoom!
+        child: InteractiveViewer(
+          panEnabled: true,
+          minScale: 0.5,
+          maxScale: 4.0,
+          child: Hero(
+            tag: heroTag,
+            child: Image.network(
+              imageUrl,
+              fit: BoxFit.contain,
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return const Center(child: CircularProgressIndicator(color: Colors.white));
+              },
+            ),
+          ),
         ),
       ),
     );
