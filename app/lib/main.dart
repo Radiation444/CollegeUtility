@@ -11,7 +11,7 @@ import 'profile_screen.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'services/notification_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-
+import 'inbox_screen.dart';
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   print("Handling a background message: ${message.messageId}");
@@ -110,6 +110,43 @@ class DashboardScreen extends StatelessWidget {
         elevation: 0,
         leading: const Icon(Icons.home),
         actions: [
+          // --- THE NEW INSTAGRAM-STYLE INBOX BADGE ---
+          StreamBuilder<QuerySnapshot>(
+            // This listens to all chats where you are a participant
+            stream: FirebaseFirestore.instance
+                .collection('chats')
+                .where('participants', arrayContains: FirebaseAuth.instance.currentUser?.uid)
+                .snapshots(),
+            builder: (context, snapshot) {
+              int totalUnread = 0;
+              final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+
+              if (snapshot.hasData && currentUserId != null) {
+                // Count up all the unread messages meant specifically for YOU
+                for (var doc in snapshot.data!.docs) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  final unreadCount = data['unreadCount_$currentUserId'] ?? 0;
+                  totalUnread += unreadCount as int;
+                }
+              }
+
+              return IconButton(
+             onPressed: () {
+               // WE CHANGED THIS LINE!
+               Navigator.push(context, MaterialPageRoute(builder: (context) => const InboxScreen()));
+             },
+             tooltip: 'Direct Messages',
+             icon: Badge(
+               isLabelVisible: totalUnread > 0, 
+               label: Text('$totalUnread', style: const TextStyle(color: Colors.white)),
+               backgroundColor: Colors.red,
+               child: const Icon(Icons.maps_ugc_rounded),
+             ),
+           );
+            },
+          ),
+          // ------------------------------------------
+          
           IconButton(
             icon: const Icon(Icons.person),
             tooltip: 'My Profile',
@@ -122,7 +159,7 @@ class DashboardScreen extends StatelessWidget {
                 );
               }
             },
-            ),
+          ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () => FirebaseAuth.instance.signOut(),

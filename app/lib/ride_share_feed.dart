@@ -344,7 +344,7 @@ class _RideShareFeedState extends State<RideShareFeed> {
                     ],
                   ),
                 ),
-                // --- THE NEW SMART ACTION BUTTON ---
+                // --- THE SMART ACTION BUTTON ---
                 Builder(
                   builder: (context) {
                     final currentUserId = FirebaseAuth.instance.currentUser?.uid;
@@ -380,24 +380,94 @@ class _RideShareFeedState extends State<RideShareFeed> {
                             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ride marked as Full!')));
                           }
                         } else {
-                          // ACTION 2: CONTACT THE DRIVER
-                          // Fetch their phone number from the users collection
+                          // ACTION 2: CONTACT THE DRIVER (DM SYSTEM)
                           final userDoc = await FirebaseFirestore.instance.collection('users').doc(ride.userId).get();
                           final phone = userDoc.data()?['phone'] ?? 'No phone number provided';
                           
+                          // A controller to grab what the passenger types
+                          final TextEditingController messageController = TextEditingController();
+
                           if (context.mounted) {
                             showDialog(
                               context: context,
                               builder: (context) => AlertDialog(
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                title: const Text('Contact Driver'),
-                                content: Text('You can reach ${ride.posterName} at:\n\n$phone'),
+                                title: const Text('Request a Seat'),
+                                content: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('Driver: ${ride.posterName}\nPhone: $phone', style: const TextStyle(color: Colors.grey)),
+                                    const SizedBox(height: 16),
+                                    TextField(
+                                      controller: messageController,
+                                      decoration: InputDecoration(
+                                        labelText: 'Send a message',
+                                        hintText: 'e.g., Hey, I am at the main gate!',
+                                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                      ),
+                                      maxLines: 3,
+                                    ),
+                                  ],
+                                ),
                                 actions: [
                                   TextButton(
                                     onPressed: () => Navigator.pop(context), 
-                                    child: const Text('Close')
+                                    child: const Text('Cancel', style: TextStyle(color: Colors.grey))
                                   ),
-                                  // In the future, you can use the 'url_launcher' package here to automatically open WhatsApp!
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                      backgroundColor: Colors.green,
+                                      foregroundColor: Colors.white,
+                                    ),
+                                    onPressed: () async {
+                                      final passengerId = FirebaseAuth.instance.currentUser?.uid;
+                                      final driverId = ride.userId;
+                                      if (passengerId == null) return;
+
+                                      // 1. Create a unique Chat ID (Alphabetical order so it's always the same for these two users)
+                                      List<String> users = [passengerId, driverId];
+                                      users.sort(); 
+                                      String chatId = "${users[0]}_${users[1]}";
+
+                                      // 2. The Message Payload
+                                      String messageText = messageController.text.trim();
+                                      if (messageText.isEmpty) messageText = "I would like to request a seat on your ride!";
+
+                                      final chatRef = FirebaseFirestore.instance.collection('chats').doc(chatId);
+                                      
+                                      // 3. Update the Main Chat Document (for the Inbox list and Badges)
+                                      await chatRef.set({
+                                        'participants': [passengerId, driverId],
+                                        'lastMessage': messageText,
+                                        'lastTimestamp': FieldValue.serverTimestamp(),
+                                        // Increment the driver's unread count!
+                                        'unreadCount_$driverId': FieldValue.increment(1), 
+                                        // Ensure the passenger's count exists
+                                        'unreadCount_$passengerId': FieldValue.increment(0), 
+                                      }, SetOptions(merge: true));
+
+                                      // 4. Save the actual message inside the chat's subcollection
+                                      await chatRef.collection('messages').add({
+                                        'senderId': passengerId,
+                                        'text': messageText,
+                                        'timestamp': FieldValue.serverTimestamp(),
+                                        // We tag this message so the UI knows to render "Accept/Decline" buttons!
+                                        'type': 'ride_request', 
+                                        'rideId': ride.id,
+                                        'requestStatus': 'pending', 
+                                      });
+
+                                      if (context.mounted) {
+                                        Navigator.pop(context); // Close the dialog
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text('Message sent! Check your inbox.'))
+                                        );
+                                      }
+                                    },
+                                    child: const Text('Send Request'),
+                                  ),
                                 ],
                               ),
                             );
